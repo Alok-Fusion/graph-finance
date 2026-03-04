@@ -1,0 +1,48 @@
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyScaffold
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data and Models (large binary files — never commit these)
+*.pt
+*.pth
+*.pth.tar
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.h5
+*.ckpt
+model_weights*
+risk_evolution*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

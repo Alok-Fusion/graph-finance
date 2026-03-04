@@ -1,0 +1,158 @@
+# 📊 Graph-Finance: Comprehensive Project Documentation
+
+## 1. Problem Statement
+The modern global financial ecosystem is fundamentally interconnected, yet traditional quantitative models (like standard MLPs or linear regressions) often fail to capture the non-linear, cascading effects of economic crises. When a localized shock occurs—such as a sudden liquidity crisis, a supply-chain collapse, or a regional volatility spike—its true threat lies in contagion. Standard models evaluate companies in isolation, entirely missing how a localized default in the "Manufacturing" sector can trigger a rapid, hidden structural collapse in the "Banking" sector through shared correlations and financial cross-holdings. 
+
+## 2. Solution Overview
+**Graph-Finance** solves this by leveraging state-of-the-art **Graph Neural Networks (GNNs)** to model the financial market precisely as what it is: a vast, interconnected network. 
+By representing companies as nodes and their financial relationships as mathematical edges, the model can accurately simulate dual-shock scenarios (both positive and negative events), dynamically map how risk propagates across entire industrial sectors, and fundamentally classify companies based on their true systemic resilience (e.g., *Defensive vs. Risk-insulated*).
+
+---
+
+## 3. Data Flow & System Architecture
+
+### 3.1 High-Level Data Flow Pipeline
+The system operates through a robust, end-to-end pipeline starting from raw synthetic generation to advanced interactive visualizations.
+
+```mermaid
+graph TD
+    A[Synthetic Data Generator] -->|Outputs Prices & Sectors| B[(Local Data Layer)]
+    B -->|companies.csv prices.csv| C[Graph Object Constructor]
+    C -->|Creates Nodes & Edges| D[Pytorch data.pt]
+    
+    D --> E[Bounded Unsupervised Training]
+    E --> F((Trained GNN Weights))
+    
+    F --> G[Simulation Engine]
+    D --> G
+    
+    G -->|Multi-Step| H[Risk Evolution Matrix]
+    G -->|Dual-Shock| I[Streamlit Dashboard]
+    
+    H --> J[PyVis HTML Network Visualizations]
+    I --> J
+    
+    style A fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style F fill:#dc2626,stroke:#fff,stroke-width:2px,color:#fff
+    style J fill:#22c55e,stroke:#fff,stroke-width:2px,color:#000
+    style I fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#000
+```
+
+### 3.2 GNN Inference & Contagion Flowchart
+When a shock is applied, the system calculates the localized impact and the subsequent multi-sector spillover via the GNN's message-passing architecture.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Streamlit UI
+    participant Market Graph
+    participant GNN Layer 1
+    participant GNN Layer 2
+    participant Output
+
+    User->>Streamlit UI: Selects Company & Shock (+/- 3.0)
+    Streamlit UI->>Market Graph: Apply localized (Index 1) Volatility Shock
+    Market Graph->>Market Graph: Compute direct immediate Sector Spillover
+    Market Graph->>GNN Layer 1: Feed updated graph (Nodes + Edges)
+    Note over GNN Layer 1: Aggregates 1st-degree neighbor risks
+    GNN Layer 1->>GNN Layer 2: Pass hidden states
+    Note over GNN Layer 2: Residual Connection prevents oversmoothing
+    GNN Layer 2->>Output: Tanh bounded scalar predictions
+    Output-->>Streamlit UI: Calculate Net-Effect (Delta Risk)
+    Streamlit UI-->>User: Display Defensive vs Pro-cyclical Categorizations
+```
+
+---
+
+## 4. Project Overview & Objective
+**Graph-Finance** is a state-of-the-art financial modeling system that leverages Graph Neural Networks (GNNs) to simulate and analyze systemic risk, economic shocks, and market contagion across interconnected companies and industrial sectors. 
+
+By representing the financial ecosystem as a mathematical graph—where nodes are individual companies and edges represent their financial, cross-holding, or correlative relationships—the system captures complex, non-linear cascading effects. It answers the fundamental quantitative question: *If Company A experiences a massive liquidity shock today, how will that risk propagate to Sector B tomorrow?*
+
+---
+
+## 2. Model Architecture (`FinancialGNN`)
+The core intelligence of Graph-Finance is driven by a bespoke, bounded PyTorch Geometric Graph Neural Network defined in `model/gnn_model.py`.
+
+### 2.1 Layer Structure
+The architecture is purposefully designed to capture both immediate local impacts and wider systemic spillovers.
+- **Input Node Features:** Each node is assigned multiple features. The two most critical are:
+  - `Index 1` (Volatility Index): The primary feature manipulated during shock scenarios.
+  - `Index 3` (Volatility Sensitivity): An inherent multiplier dictating how susceptible a company is to localized volatility.
+- **Layer 1 (`GCNConv` + ReLU + Dropout):** The first Graph Convolutional Network (GCN) layer ingests node features and the graph topology (`edge_index`). It aggregates neighbor data, applies a ReLU non-linearity, and uses Dropout (p=0.3) to prevent overfitting during unsupervised training.
+- **Layer 2 (`GCNConv` + Residual Connection):** The second GCN layer captures 2nd-degree connections (e.g., how the shock moves from A to B, and then B to C). A residual connection (`h = h + h2`) ensures original node features are preserved, preventing the "oversmoothing" commonly seen in deep GNNs.
+- **Output Layer:** A final linear transformation mapping the hidden states to a 1D risk score. This output is passed through a bounded non-linearity (`torch.tanh(out) * 5`) to preserve the asymmetrical nature of financial scenarios while preventing numerical explosion.
+
+---
+
+## 3. Training Methodology & Philosophy
+Unlike typical supervised models, predicting financial crises lacks perfectly labeled, vast datasets. Graph-Finance solves this via a novel **Bounded Unsupervised Training approach**.
+
+### 3.1 Unsupervised Loss Function (`train.py`)
+The model optimizes using a custom, multi-part loss function that relies purely on network topology and mathematical constraints:
+1. **Variance Constraint:** `(out.var() - TARGET_VAR) ** 2`
+   - Forces the model's output distribution to maintain a set standard deviation, preventing trivial solutions where every company is assigned the exact same risk score.
+2. **Graph Smoothness (Homophily):** `((out[src] - out[dst]) ** 2).mean()`
+   - Penalizes drastic differences in the risk scores of highly connected nodes. It mathematically enforces the economic reality that intertwined entities share similar systemic destinies.
+3. **Scale Regularization:** `(out ** 2).mean()`
+   - Standard L2 regularization on the output magnitude, ensuring the predicted risk scores remain grounded near zero unless a severe shock is applied.
+
+*Training Details:* Optimized via Adam (LR=0.005) over 300 epochs.
+
+### 3.2 Baseline Implementations
+To scientifically prove the utility of the GNN, the project includes two ablations:
+- **`train_baseline.py`:** An MLP that ignores the graph structure entirely.
+- **`train_no_corr.py`:** A GNN trained on a graph missing its correlative edges. 
+Comparing these against the primary model confirms that message-passing over financial connections is the true source of predictive power.
+
+---
+
+## 4. Systemic Contagion & Simulation Scripts
+Graph-Finance is built heavily around simulation. Beyond the interactive dashboard, it includes rigorous deterministic simulation scripts.
+
+### 4.1 Single-Step Propagation (`simulate_propagation.py`)
+A fast utility for injecting a raw volatility shock (e.g., `Magnitude = 3.0`) into a singular company and calculating the immediate mathematical $\Delta \text{Risk}$ across all other nodes in the network compared to their baseline state.
+
+### 4.2 Multi-Step Temporal Evolution (`multi_step_simulation.py`)
+Simulates how a crisis evolves across explicit timeframes ($T_0 ... T_n$).
+- It allows for **simultaneous multi-node shocks**.
+- Implements a **Decay Factor (`decay = 0.6`)**, modeling how initial market panic subsides or is absorbed by central entities over time.
+- The temporal risk matrix is exported as a NumPy array (`risk_evolution.npy`) for external longitudinal analysis plotting.
+
+---
+
+## 5. Validation & Accuracy Experiments
+Because the primary model is unsupervised, accuracy is evaluated via robustness and adherence to financial intuition, handled in `validation_random_shock.py`.
+
+### 5.1 Random Shock Experiment (Monte Carlo Approach)
+- **Methodology:** The script randomly selects nodes, applies heavy volatility shocks, and computes the network-wide $\Delta \text{Risk}$. This is repeated over 50 iterations (`N_RUNS = 50`).
+- **Metric:** Records the **Average Impact (%)** and **Standard Deviation (%)** grouped by Industrial Sector. 
+- **Purpose:** Proves that shocks propagate smoothly and logically, verifying the stability of the bounded $\tanh$ output layers.
+
+### 5.2 Ablation Study
+A subset of the validation suite tests the model's reliance on intrinsic company features:
+- **Mechanism:** It removes the `Volatility Sensitivity` scaling factor during the shock injection.
+- **Result:** Comparing this to the "Full Model" illustrates that the GNN successfully differentiates between "Risk-insulated" and "Leverage-sensitive" entities, rather than treating the market as a uniform, undifferentiated web.
+
+---
+
+## 6. Dual-Shock Scenario Dashboard
+The core analytical platform is the interactive Streamlit user-interface (`shock_analysis_dashboard.py`).
+
+### 6.1 Scenario Generation & Contagion Logic
+Users can inject localized events (Positive Shocks / Negative Shocks). The UI explicitly models the immediate sector contagion before passing it strictly through the GNN:
+1. **Primary Node:** Receives $S \times \text{Sensitivity}$.
+2. **Direct Peers (Same Sector):** Suffer an immediate spillover penalty (`0.3 * S * Peer_Sensitivity`) due to shared industrial risk.
+3. **GNN Output:** The model predicts the final non-linear $\Delta \text{Risk}$ map resulting from these inputs.
+
+### 6.2 Economic Categorization Engine
+The dashboard digests complex multi-dimensional outputs into four actionable classifications by comparing the dual-shock Net Effect against intrinsic Volatility Sensitivity:
+
+**Company-Level Classifications:**
+- **Defensive / Leverage-sensitive:** High intrinsic sensitivity, high positive net effect. (Dangerous in a crisis).
+- **Volatility-benefiting (Convex payoff):** High intrinsic sensitivity, highly negative net effect. (Thrives in a crisis).
+- **Risk-insulated / Stable:** Extremely low net effect. (Safe-haven assets).
+- **Moderate asymmetric exposure:** The baseline expectation for a standard firm.
+
+**Sector-Level Classifications:**
+Aggregates company data to classify entire industries as either a *Defensive Sector* (overall net positive), a *Pro-cyclical Sector* (overall net negative), or *Neutral*.
