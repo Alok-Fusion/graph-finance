@@ -81,6 +81,9 @@ streamlit run shock_analysis_dashboard.py
 > **Tip:** You can adjust the **Shock Magnitude** via the sidebar controls and select individual target companies to measure their isolated impact and the ensuing sector spillover effects!
 
 ---
+<img width="1905" height="910" alt="Screenshot 2026-03-10 202202" src="https://github.com/user-attachments/assets/9582c946-d41b-423c-bab6-cbf77f73078a" />
+<img width="1916" height="921" alt="Screenshot 2026-03-10 202223" src="https://github.com/user-attachments/assets/30e656b7-a4d6-4771-b435-52db7fc3e3ab" />
+<img width="1905" height="910" alt="image" src="https://github.com/user-attachments/assets/39c74f61-d5c6-493a-9fbd-d5540cc7580d" />
 
 <div align="center">
   <i>Built with precision to push the boundaries of Machine Learning in Quantitative Finance.</i>
